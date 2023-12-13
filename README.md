@@ -247,6 +247,8 @@ up route add -net 192.194.0.20 netmask 255.255.255.252 gw 192.194.0.130 # A10
 
 ## DHCP
 
+### [Link Setup DHCP](https://github.com/daudhiyaa/Jarkom-Modul-5-D06-2023/tree/main/0)
+
 ![Alt text](images/image-1.png)
 
 ## No 1
@@ -283,14 +285,18 @@ iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
 # untuk melakukan drop semua TCP dan UDP
 iptables -A INPUT -p tcp -j DROP
 iptables -A INPUT -p udp -s 192.194.0.0/20 -j DROP
+```
 
-# listening verbose
+Testing
+
+```sh
+# Di LaubHills
 nc -lvp 8080
 
 # di client lain
-# apt-get update
-# apt-get install netcat -y
-# nc [ip LaubHills] 8080
+apt-get update
+apt-get install netcat -y
+nc [IP_LaubHills] 8080
 ```
 
 **Hasil**
@@ -523,3 +529,18 @@ nmap 192.194.0.10 22
 **Hasil**
 
 ![Alt text](images/image-11.png)
+
+## No 9
+
+**Soal**
+
+Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer harus dapat secara otomatis memblokir alamat IP yang melakukan scanning port dalam jumlah banyak (maksimal 20 scan port) di dalam selang waktu 10 menit.
+(clue: test dengan nmap)
+
+**Jawab**
+
+```sh
+
+```
+
+**Hasil**
