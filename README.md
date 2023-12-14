@@ -7,7 +7,27 @@
 | Achmad Khosyi’ Assajjad Ramandanta | 5025211007 |
 | Daud Dhiya' Rozaan                 | 5025211021 |
 
+## Introduction
+
+Untuk menyelesaikan praktikum 5 jaringan komputer ini,pertama-tama, kita harus melakukan konfigurasi awal agar topologi dapat terhubung antar satu node dgn yg lain menggunakan teknik `subnetting` dan `routing`, dan juga agar dapat terhubung dengan internet luar
+
+## Subnetting
+
+### Link Spreadsheet Perhitungan
+
+Berikut merupakan link spreadsheet penentuan rute & perhitungan subnet menggunakan metode `VLSM` : [Link Spreadsheet Perhitungan](https://docs.google.com/spreadsheets/d/1U3YAlXMqIkapLcp48UgTTKwQGk3bb3ifIKzRlXlVnas/edit#gid=638239655)
+
+### Pembagian Subnet
+
+![Alt text](images/subnet.png)
+
+### VSLM Tree
+
+![Alt text](images/tree.jpg)
+
 ## Setup Configuration
+
+Selanjutnya, lakukan konfigurasi untuk setiap node
 
 ### Aura
 
@@ -214,7 +234,9 @@ up echo nameserver 192.168.122.1 > /etc/resolv.conf
 
 ## Routing
 
-### Aura
+Setelah subnetting dan setup untuk konfigurasi tiap node selesai, lalu lakukan routing dengan menjalankan command-command ini
+
+### Di Aura
 
 ```sh
 # Heiter
@@ -229,7 +251,7 @@ up route add -net 192.194.0.16 netmask 255.255.255.252 gw 192.194.0.6 # A9
 up route add -net 192.194.0.20 netmask 255.255.255.252 gw 192.194.0.6 # A10
 ```
 
-### Frieren
+### Di Frieren
 
 ```sh
 up route add -net 192.194.2.0 netmask 255.255.254.0 gw 192.194.0.14 # A7
@@ -238,16 +260,22 @@ up route add -net 192.194.0.16 netmask 255.255.255.252 gw 192.194.0.14 # A9
 up route add -net 192.194.0.20 netmask 255.255.255.252 gw 192.194.0.14 # A10
 ```
 
-### Himmel
+### Di Himmel
 
 ```sh
 up route add -net 192.194.0.16 netmask 255.255.255.252 gw 192.194.0.130 # A9
 up route add -net 192.194.0.20 netmask 255.255.255.252 gw 192.194.0.130 # A10
 ```
 
+Untuk routing kita hanya perlu melakukannya di 3 Router, karena 3 Router tersebut lah yang merupakan 'parent' dari subnet-subnet di bawahnya
+
 ## DHCP
 
+Lalu kita lakukan setup untuk DHCP Server, Relay, & Client agar Client dapat menerima IP secara dinamis menggunakan DHCP
+
 ### [Link Setup DHCP](https://github.com/daudhiyaa/Jarkom-Modul-5-D06-2023/tree/main/0)
+
+**Hasil**
 
 ![Alt text](images/image-1.png)
 
@@ -258,6 +286,8 @@ up route add -net 192.194.0.20 netmask 255.255.255.252 gw 192.194.0.130 # A10
 Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Aura menggunakan iptables, tetapi tidak ingin menggunakan MASQUERADE.
 
 **Jawab**
+
+Agar topologi dapat mengakses internet dari luar tanpa menggunakan MASQUERADE, kita bisa menjalankan command ini di `Aura`
 
 ```sh
 ETH0_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
@@ -272,7 +302,7 @@ Kalian diminta untuk melakukan drop semua TCP dan UDP kecuali port 8080 pada TCP
 
 **Jawab**
 
-Di salah satu client (Contoh disini adalah menggunakan `LaubHills`)
+Jalnkan command ini di salah satu client (Contoh disini adalah menggunakan `LaubHills`)
 
 ```sh
 echo nameserver 192.168.122.1 >/etc/resolv.conf
@@ -280,20 +310,24 @@ echo nameserver 192.168.122.1 >/etc/resolv.conf
 apt-get update
 apt-get install netcat -y
 
-# kecuali port 8080 pada TCP
+# acc port 8080 pada TCP
 iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
-# untuk melakukan drop semua TCP dan UDP
+# drop semua TCP dan UDP
 iptables -A INPUT -p tcp -j DROP
 iptables -A INPUT -p udp -s 192.194.0.0/20 -j DROP
 ```
 
-Testing
+**Testing**
+
+Jalankan command ini di `LaubHills` sebagai listener untuk semua message yang menggunakan port 8080
 
 ```sh
-# Di LaubHills
 nc -lvp 8080
+```
 
-# di client lain
+Lalu buka terminal baru, dan jalankan command ini di client selain `LaubHills` sebagai publisher menggunakan port 8080
+
+```sh
 apt-get update
 apt-get install netcat -y
 nc [IP_LaubHills] 8080
@@ -318,6 +352,10 @@ iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
 ```
 
+_Keterangan_: Untuk membatasi berapa device yang dapat melakukan ping ke suatu node, kita dapat menggunakan argumen `connlimit --connlimit-above n` pada command `iptables`, dengan `n` adalah maximum device yang dapat melakukan ping ke suatu node tersebut
+
+**Testing**
+
 Lalu lakukan testing di lebih dari 3 client
 
 ```
@@ -327,11 +365,11 @@ ping [ip DNS Server]
 
 **Hasil**
 
-DHCP Server
+Ping 4 Device ke DHCP Server
 
 ![Alt text](images/image-2.png)
 
-DNS Server
+Ping 4 Device ke DNS Server
 
 ![Alt text](images/image-3.png)
 
@@ -346,13 +384,16 @@ Lakukan pembatasan sehingga koneksi SSH pada Web Server hanya dapat dilakukan ol
 Jalankan Command ini di Web Server (`Sein` & `Stark`)
 
 ```sh
-# terima dari GrobeForest
-iptables -A INPUT -p tcp --dport 22 -s 192.194.4.0/22 -j ACCEPT
-# tolak selain dari GrobeForest
+NID_SUBNET_GROBEFOREST="192.194.4.0/22"
+# command untuk menerima dari GrobeForest
+iptables -A INPUT -p tcp --dport 22 -s $NID_SUBNET_GROBEFOREST -j ACCEPT
+# command untuk menolak selain dari GrobeForest
 iptables -A INPUT -p tcp --dport 22 -j DROP
 ```
 
-Testing
+_Keterangan_ : 22 adalah port untuk SSH
+
+**Testing**
 
 ```sh
 # Di Web Server
@@ -386,10 +427,18 @@ Selain itu, akses menuju WebServer hanya diperbolehkan saat jam kerja yaitu Seni
 Jalankan Command ini di Web Server (`Sein` & `Stark`)
 
 ```sh
+# accept(terima) akses pada jam kerja
 iptables -A INPUT -p tcp --dport 22 -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 08:00 --timestop 16:00 -j ACCEPT
 ```
 
-Testing
+_Keterangan_:
+
+- `--dport 22`: port SSH
+- `--weekdays Mon,Tue,Wed,Thu,Fri`: Hari yang ditentukan
+- `--timestart 08:00`: waktu mulai
+- `--timestop 16:00`: waktu selesai
+
+**Testing**
 
 ```sh
 # Di Web Server
@@ -423,6 +472,7 @@ Lalu, karena ternyata terdapat beberapa waktu di mana network administrator dari
 Jalankan Command ini di Web Server (`Sein` & `Stark`)
 
 ```sh
+# Bersihkan semua rules iptables
 iptables -F
 
 # drop untuk waktu makang siang
@@ -430,11 +480,12 @@ iptables -A INPUT -p tcp --dport 22 -m time --weekdays Mon,Tue,Wed,Thu --timesta
 # drop untuk waktu jumatan
 iptables -A INPUT -p tcp --dport 22 -m time --weekdays Fri --timestart 11:00 --timestop 13:00 -j DROP
 
+# rules dari no 4 & 5
 iptables -A INPUT -p tcp --dport 22 -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 08:00 --timestop 16:00 -s 192.194.4.0/22 -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j DROP
 ```
 
-Testing
+**Testing**
 
 ```sh
 # Di Web Server
@@ -481,7 +532,7 @@ iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.177.0.18 -m statistic --
 iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.177.0.18 -j DNAT --to-destination 192.177.4.2
 ```
 
-Testing Untuk Port 80
+**Testing** Untuk Port 80
 
 ```sh
 # Di Sein
@@ -490,7 +541,7 @@ while true; do nc -l -p 80 -c 'echo "Ini Dari Sein"'; done
 while true; do nc -l -p 443 -c 'echo "Ini Dari Stark"'; done
 ```
 
-Testing Untuk Port 443
+**Testing** Untuk Port 443
 
 ```sh
 # Di Sein
@@ -512,15 +563,17 @@ Karena berbeda koalisi politik, maka subnet dengan masyarakat yang berada pada R
 Jalankan Command ini di Web Server (`Sein` & `Stark`)
 
 ```sh
+IP_SUBNET_REVOLTE="192.194.0.20/30"
+
 MULAI_MASA_PEMILU=$(date -d "2023-10-19T00:00" +"%Y-%m-%dT%H:%M")
 
 SELESAI_MASA_PEMILU=$(date -d "2024-02-15T00:00" +"%Y-%m-%dT%H:%M")
 
 # Atur waktu untuk masa pemilu
-iptables -A INPUT -p tcp -s 192.194.0.20/30 --dport 80 -m time --datestart "$MULAI_MASA_PEMILU" --datestop "$SELESAI_MASA_PEMILU" -j DROP
+iptables -A INPUT -p tcp -s $IP_SUBNET_REVOLTE --dport 80 -m time --datestart "$MULAI_MASA_PEMILU" --datestop "$SELESAI_MASA_PEMILU" -j DROP
 ```
 
-Testing di Revolte
+**Testing** di Revolte
 
 ```sh
 nmap 192.194.0.10 22
@@ -536,6 +589,36 @@ nmap 192.194.0.10 22
 
 Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer harus dapat secara otomatis memblokir alamat IP yang melakukan scanning port dalam jumlah banyak (maksimal 20 scan port) di dalam selang waktu 10 menit.
 (clue: test dengan nmap)
+
+**Jawab**
+
+Jalankan Command ini di Web Server (`Sein` & `Stark`)
+
+```sh
+iptables -N portscan
+
+iptables -A INPUT -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP
+iptables -A FORWARD -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP
+
+iptables -A INPUT -m recent --name portscan --set -j ACCEPT
+iptables -A FORWARD -m recent --name portscan --set -j ACCEPT
+```
+
+**Testing**
+
+Lakukan ping ke IP WebServer (`Sein` / `Stark`) di salah satu client
+
+```sh
+ping [IP_WebServer]
+```
+
+**Hasil**
+
+## No 10
+
+**Soal**
+
+Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.
 
 **Jawab**
 
