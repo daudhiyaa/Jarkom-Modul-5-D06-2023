@@ -333,7 +333,7 @@ Lalu buka terminal baru, dan jalankan command ini di client selain `LaubHills` s
 apt-get update
 apt-get install netcat -y
 
-IP_LAUBHILLS=""
+IP_LAUBHILLS="192.194.2.2"
 nc $IP_LAUBHILLS 8080
 ```
 
@@ -364,11 +364,11 @@ _Keterangan_: Untuk membatasi berapa device yang dapat melakukan ping ke suatu n
 Lalu lakukan testing di lebih dari 3 client
 
 ```sh
-IP_DHCP_SERVER=""
-IP_DNS_SERVER=""
+IP_DHCP_SERVER_REVOLTE="192.194.0.22"
+ping $IP_DHCP_SERVER_REVOLTE
 
-ping $IP_DHCP_SERVER
-ping $IP_DNS_SERVER
+IP_DNS_SERVER_RICHTER="192.194.0.18"
+ping $IP_DNS_SERVER_RICHTER
 ```
 
 **Hasil**
@@ -385,7 +385,7 @@ Ping 4 Device ke DNS Server
 
 **Soal**
 
-Lakukan pembatasan sehingga koneksi SSH pada Web Server hanya dapat dilakukan oleh masyarakat yang berada pada GrobeForest
+Lakukan pembatasan sehingga koneksi SSH pada Web Server hanya dapat dilakukan oleh masyarakat yang berada pada `GrobeForest`
 
 **Jawab**
 
