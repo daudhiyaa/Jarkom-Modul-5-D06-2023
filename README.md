@@ -631,7 +631,13 @@ iptables -A FORWARD -m recent --name portscan --set -j ACCEPT
 Lakukan ping ke IP WebServer (`Sein` / `Stark`) di salah satu client
 
 ```sh
-ping [IP_WebServer]
+# Ke Sein
+IP_SEIN="192.194.4.2"
+ping $IP_SEIN
+
+# Ke Stark
+IP_STARK="192.194.0.10"
+ping $IP_STARK
 ```
 
 **Hasil**
