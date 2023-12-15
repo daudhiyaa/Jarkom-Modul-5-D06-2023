@@ -310,11 +310,13 @@ echo nameserver 192.168.122.1 >/etc/resolv.conf
 apt-get update
 apt-get install netcat -y
 
+ROOT_IP="192.194.0.0/20"
+
 # acc port 8080 pada TCP
 iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
 # drop semua TCP dan UDP
 iptables -A INPUT -p tcp -j DROP
-iptables -A INPUT -p udp -s 192.194.0.0/20 -j DROP
+iptables -A INPUT -p udp -s $ROOT_IP -j DROP
 ```
 
 **Testing**
@@ -330,7 +332,9 @@ Lalu buka terminal baru, dan jalankan command ini di client selain `LaubHills` s
 ```sh
 apt-get update
 apt-get install netcat -y
-nc [IP_LaubHills] 8080
+
+IP_LAUBHILLS=""
+nc $IP_LAUBHILLS 8080
 ```
 
 **Hasil**
@@ -348,19 +352,23 @@ Kepala Suku North Area meminta kalian untuk membatasi DHCP dan DNS Server hanya 
 Jalankan Command ini di DHCP Server & DNS Server
 
 ```sh
+MAX_DEVICES=3
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
+iptables -A INPUT -p icmp -m connlimit --connlimit-above $MAX_DEVICES --connlimit-mask 0 -j DROP
 ```
 
-_Keterangan_: Untuk membatasi berapa device yang dapat melakukan ping ke suatu node, kita dapat menggunakan argumen `connlimit --connlimit-above n` pada command `iptables`, dengan `n` adalah maximum device yang dapat melakukan ping ke suatu node tersebut
+_Keterangan_: Untuk membatasi berapa device yang dapat melakukan ping ke suatu node, kita dapat menggunakan argumen `connlimit --connlimit-above $MAX_DEVICES` pada command `iptables`, dengan `$MAX_DEVICES` adalah maximum device yang dapat melakukan ping ke suatu node tersebut
 
 **Testing**
 
 Lalu lakukan testing di lebih dari 3 client
 
-```
-ping [ip DHCP Server]
-ping [ip DNS Server]
+```sh
+IP_DHCP_SERVER=""
+IP_DNS_SERVER=""
+
+ping $IP_DHCP_SERVER
+ping $IP_DNS_SERVER
 ```
 
 **Hasil**
@@ -400,10 +408,12 @@ _Keterangan_ : 22 adalah port untuk SSH
 nc -lvp 22
 
 # Di GrobeForest & Client lainnya ke Sein
-nmap 192.194.4.2 22
+IP_SEIN="192.194.4.2"
+nmap $IP_SEIN 22
 
 # Di GrobeForest & Client lainnya ke Stark
-nmap 192.194.0.10 22
+IP_STARK="192.194.0.10"
+nmap $IP_STARK 22
 ```
 
 **Hasil**
@@ -445,10 +455,12 @@ _Keterangan_:
 nc -lvp 22
 
 # Di GrobeForest & Client lainnya ke Sein
-nmap 192.194.4.2 22
+IP_SEIN="192.194.4.2"
+nmap $IP_SEIN 22
 
 # Di GrobeForest & Client lainnya ke Stark
-nmap 192.194.0.10 22
+IP_STARK="192.194.0.10"
+nmap $IP_STARK 22
 ```
 
 **Hasil**
@@ -481,7 +493,8 @@ iptables -A INPUT -p tcp --dport 22 -m time --weekdays Mon,Tue,Wed,Thu --timesta
 iptables -A INPUT -p tcp --dport 22 -m time --weekdays Fri --timestart 11:00 --timestop 13:00 -j DROP
 
 # rules dari no 4 & 5
-iptables -A INPUT -p tcp --dport 22 -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 08:00 --timestop 16:00 -s 192.194.4.0/22 -j ACCEPT
+NID_SUBNET_GROBEFOREST="192.194.4.0/22"
+iptables -A INPUT -p tcp --dport 22 -m time --weekdays Mon,Tue,Wed,Thu,Fri --timestart 08:00 --timestop 16:00 -s $NID_SUBNET_GROBEFOREST -j ACCEPT
 iptables -A INPUT -p tcp --dport 22 -j DROP
 ```
 
@@ -492,10 +505,12 @@ iptables -A INPUT -p tcp --dport 22 -j DROP
 nc -lvp 22
 
 # Di GrobeForest & Client lainnya ke Sein
-nmap 192.194.4.2 22
+IP_SEIN="192.194.4.2"
+nmap $IP_SEIN 22
 
 # Di GrobeForest & Client lainnya ke Stark
-nmap 192.194.0.10 22
+IP_STARK="192.194.0.10"
+nmap $IP_STARK 22
 ```
 
 **Hasil**
@@ -523,13 +538,16 @@ Karena terdapat 2 WebServer, kalian diminta agar setiap client yang mengakses Se
 Jalankan Command ini di Heiter, karena Heiter adalah salah satu router yang menyambung ke web server
 
 ```sh
-iptables -A PREROUTING -t nat -p tcp --dport 80 -d 192.177.4.2 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 192.177.4.2
+IP_SEIN="192.194.4.2"
+IP_STARK="192.194.0.10"
 
-iptables -A PREROUTING -t nat -p tcp --dport 80 -d 192.177.4.2 -j DNAT --to-destination 192.177.0.18
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d $IP_SEIN -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination $IP_SEIN
 
-iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.177.0.18 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 192.177.0.18
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d $IP_SEIN -j DNAT --to-destination $IP_STARK
 
-iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.177.0.18 -j DNAT --to-destination 192.177.4.2
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d $IP_STARK -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination $IP_STARK
+
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d $IP_STARK -j DNAT --to-destination $IP_SEIN
 ```
 
 **Testing** Untuk Port 80
@@ -538,7 +556,7 @@ iptables -A PREROUTING -t nat -p tcp --dport 443 -d 192.177.0.18 -j DNAT --to-de
 # Di Sein
 while true; do nc -l -p 80 -c 'echo "Ini Dari Sein"'; done
 # Di Stark
-while true; do nc -l -p 443 -c 'echo "Ini Dari Stark"'; done
+while true; do nc -l -p 80 -c 'echo "Ini Dari Stark"'; done
 ```
 
 **Testing** Untuk Port 443
@@ -564,9 +582,7 @@ Jalankan Command ini di Web Server (`Sein` & `Stark`)
 
 ```sh
 IP_SUBNET_REVOLTE="192.194.0.20/30"
-
 MULAI_MASA_PEMILU=$(date -d "2023-10-19T00:00" +"%Y-%m-%dT%H:%M")
-
 SELESAI_MASA_PEMILU=$(date -d "2024-02-15T00:00" +"%Y-%m-%dT%H:%M")
 
 # Atur waktu untuk masa pemilu
@@ -576,7 +592,13 @@ iptables -A INPUT -p tcp -s $IP_SUBNET_REVOLTE --dport 80 -m time --datestart "$
 **Testing** di Revolte
 
 ```sh
-nmap 192.194.0.10 22
+# Ke Sein
+IP_SEIN="192.194.4.2"
+nmap $IP_SEIN 22
+
+# Ke Stark
+IP_STARK="192.194.0.10"
+nmap $IP_STARK 22
 ```
 
 **Hasil**
