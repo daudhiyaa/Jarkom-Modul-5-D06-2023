@@ -617,27 +617,31 @@ Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer har
 Jalankan Command ini di Web Server (`Sein` & `Stark`)
 
 ```sh
-iptables -N portscan
+iptables -N scan_port
 
-iptables -A INPUT -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP
-iptables -A FORWARD -m recent --name portscan --update --seconds 600 --hitcount 20 -j DROP
+iptables -A INPUT -m recent --name scan_port --update --seconds 600 --hitcount 20 -j DROP
+iptables -A FORWARD -m recent --name scan_port --update --seconds 600 --hitcount 20 -j DROP
+iptables -A INPUT -m recent --name scan_port --set -j ACCEPT
+iptables -A FORWARD -m recent --name scan_port --set -j ACCEPT
+```
 
-iptables -A INPUT -m recent --name portscan --set -j ACCEPT
-iptables -A FORWARD -m recent --name portscan --set -j ACCEPT
+Webserver pertama-tama akan mengecek apakah sebuah alamat IP berada dalam rantai scan_port dan telah melakukan 20 upaya scanning dalam 10 menit terakhir.
+
+```sh
+-m recent --name scan_port --update --seconds 600 --hitcount 20
+```
+
+Ketika ditemukan sebuah IP yang melanggar rule tersebut, maka IP tersebut akan diblokir
+
+```sh
+-j DROP
 ```
 
 **Testing**
 
-Lakukan ping ke IP WebServer (`Sein` / `Stark`) di salah satu client
-
 ```sh
-# Ke Sein
 IP_SEIN="192.194.4.2"
-ping $IP_SEIN
-
-# Ke Stark
-IP_STARK="192.194.0.10"
-ping $IP_STARK
+nmap -sT -p1-50 $IP_SEIN
 ```
 
 **Hasil**
@@ -650,8 +654,26 @@ Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node se
 
 **Jawab**
 
-```sh
+Syntax jawaban untuk menyelesaikan nomor 10
 
+```sh
+iptables -A INPUT  -j LOG --log-level debug --log-prefix 'Dropped Packet' -m limit --limit 1/second --limit-burst 10
 ```
+
+Berikut adalah penjelasan dari bagian pada syntax tersebut:
+
+`-A INPUT`: Menambahkan aturan ke chain INPUT.
+
+`-j LOG`: Menunjukkan bahwa aksi yang akan diambil adalah log. Ketika paket mencocokkan aturan ini dan ditolak, informasi tentang paket tersebut akan dicatat dalam log sistem.
+
+`--log-level debug`: Menentukan level log yang akan digunakan. Dalam hal ini, level log adalah "debug", yang berarti log akan mencatat informasi lebih rinci.
+
+`--log-prefix 'Dropped Packet'`: Menetapkan prefix atau awalan untuk setiap entri log. Dalam hal ini, pesan log akan dimulai dengan teks "Dropped Packet".
+
+`-m limit`: Menggunakan modul "limit" untuk mengatur batasan pada jumlah log yang akan dicatat.
+
+`--limit 1/second`: Menetapkan batasan sebanyak satu log per detik.
+
+`--limit-burst 10`: Menetapkan batasan burst, yaitu jumlah log yang dapat dilakukan dalam satu waktu sebelum batasan per detik diambil kembali.
 
 **Hasil**
