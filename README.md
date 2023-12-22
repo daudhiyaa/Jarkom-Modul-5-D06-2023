@@ -665,6 +665,15 @@ Ketika ditemukan sebuah IP yang melanggar rule tersebut, maka IP tersebut akan d
 
 **Testing**
 
+<!--
+IP_SEIN="192.194.4.2"
+for i in {1..25}; do
+  echo $i
+  nmap -p 80 -T2 -sS $IP_SEIN
+  sleep 3
+done
+-->
+
 ```sh
 IP_SEIN="192.194.4.2"
 nmap -sT -p1-50 $IP_SEIN
@@ -703,3 +712,5 @@ Berikut adalah penjelasan dari bagian pada syntax tersebut:
 `--limit-burst 10`: Menetapkan batasan burst, yaitu jumlah log yang dapat dilakukan dalam satu waktu sebelum batasan per detik diambil kembali.
 
 **Hasil**
+
+![Alt text](images/image-14.png)
