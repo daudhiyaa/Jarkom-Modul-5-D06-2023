@@ -552,6 +552,8 @@ iptables -A PREROUTING -t nat -p tcp --dport 443 -d $IP_STARK -j DNAT --to-desti
 
 **Testing** Untuk Port 80
 
+Jalankan Command ini di Sein & Stark secara bersamaan, dan jangan dimatikan terlebih dahulu
+
 ```sh
 # Di Sein
 while true; do nc -l -p 80 -c 'echo "Ini Dari Sein"'; done
@@ -559,7 +561,16 @@ while true; do nc -l -p 80 -c 'echo "Ini Dari Sein"'; done
 while true; do nc -l -p 80 -c 'echo "Ini Dari Stark"'; done
 ```
 
+Lalu buka console salah satu client, dan masukkan command dibawah ini secara berkali-kali, maka message yang diterima akan berubah-ubah
+
+```sh
+IP_SEIN="192.194.4.2"
+nc $IP_SEIN 80
+```
+
 **Testing** Untuk Port 443
+
+Jalankan Command ini di Sein & Stark secara bersamaan, dan jangan dimatikan terlebih dahulu
 
 ```sh
 # Di Sein
@@ -568,7 +579,22 @@ while true; do nc -l -p 443 -c 'echo "Ini Dari Sein"'; done
 while true; do nc -l -p 443 -c 'echo "Ini Dari Stark"'; done
 ```
 
+Lalu buka console salah satu client, dan masukkan command dibawah ini secara berkali-kali, maka message yang diterima akan berubah-ubah
+
+```sh
+IP_STARK="192.194.0.10"
+nc $IP_STARK 80
+```
+
 **Hasil**
+
+Rules di Heiter
+
+![Alt text](images/image-12.png)
+
+Testing di Client
+
+![Alt text](images/image-13.png)
 
 ## No 8
 
